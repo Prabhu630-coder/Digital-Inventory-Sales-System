@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Reports · InventoryPro{% endblock %}
+{% block heading %}Sales Analytics & Reports{% endblock %}
+{% block content %}
+<div class="row g-3 mt-1">
+<div class="col-md-6"><div class="stat-card"><span>Total Revenue</span><strong>₹{{ "%.2f"|format(total_revenue) }}</strong></div></div>
+<div class="col-md-6"><div class="stat-card"><span>Total Orders</span><strong>{{ total_orders }}</strong></div></div>
+</div>
+<div class="row g-3 mt-2">
+<div class="col-lg-7"><div class="panel"><div class="panel-title">Revenue Trend</div><canvas id="salesChart"></canvas></div></div>
+<div class="col-lg-5"><div class="panel"><div class="panel-title">Top Products</div>
+<table class="table"><thead><tr><th>Product</th><th>Qty</th><th>Revenue</th></tr></thead><tbody>
+{% for p in top_products %}<tr><td>{{ p.name }}</td><td>{{ p.qty }}</td><td>₹{{ "%.2f"|format(p.revenue) }}</td></tr>{% else %}<tr><td colspan="3">No sales data.</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const labels = {{ daily|map(attribute='day')|list|tojson }};
+const values = {{ daily|map(attribute='revenue')|list|tojson }};
+new Chart(document.getElementById('salesChart'), {
+ type:'line', data:{labels:labels,datasets:[{label:'Revenue',data:values,tension:.3}]},
+ options:{responsive:true,scales:{y:{beginAtZero:true}}}
+});
+</script>
+{% endblock %}

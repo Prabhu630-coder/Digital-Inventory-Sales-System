@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · InventoryPro{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block content %}
+<div class="row g-3 mt-1">
+  <div class="col-md-3"><div class="stat-card"><span>Today's Sales</span><strong>₹{{ "%.2f"|format(stats.today_sales) }}</strong></div></div>
+  <div class="col-md-3"><div class="stat-card"><span>Today's Orders</span><strong>{{ stats.orders }}</strong></div></div>
+  <div class="col-md-3"><div class="stat-card"><span>Total Products</span><strong>{{ stats.products }}</strong></div></div>
+  <div class="col-md-3"><div class="stat-card warning"><span>Low Stock</span><strong>{{ stats.low_stock }}</strong></div></div>
+</div>
+<div class="row g-3 mt-2">
+  <div class="col-lg-7">
+    <div class="panel">
+      <div class="panel-title">Recent Sales</div>
+      <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Total</th></tr></thead>
+        <tbody>
+        {% for s in recent_sales %}
+        <tr><td>#{{ s.id }}</td><td>{{ s.customer }}</td><td>{{ s.sale_date }}</td><td>₹{{ "%.2f"|format(s.total) }}</td></tr>
+        {% else %}<tr><td colspan="4" class="text-muted">No sales yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="panel">
+      <div class="panel-title">⚠️ Low Stock Alerts</div>
+      {% for p in low_stock %}
+        <div class="alert-row"><span>{{ p.name }}</span><b>{{ p.quantity }} left</b></div>
+      {% else %}
+        <p class="text-muted">All stock levels look good.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

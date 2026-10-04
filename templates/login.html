@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Login · InventoryPro{% endblock %}
+{% block public_content %}
+<div class="login-page">
+  <div class="login-card">
+    <div class="text-center mb-4">
+      <div class="logo-big">📦</div>
+      <h2>InventoryPro</h2>
+      <p class="text-muted">Digital Inventory & Sales Management</p>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    <form method="post">
+      <label class="form-label">Email</label>
+      <input class="form-control mb-3" type="email" name="email" value="admin@inventory.com" required>
+      <label class="form-label">Password</label>
+      <input class="form-control mb-3" type="password" name="password" value="admin123" required>
+      <button class="btn btn-primary w-100">Login</button>
+    </form>
+    <div class="demo-box mt-3">Demo: admin@inventory.com / admin123</div>
+  </div>
+</div>
+{% endblock %}

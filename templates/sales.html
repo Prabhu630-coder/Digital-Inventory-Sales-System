@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Sales · InventoryPro{% endblock %}
+{% block heading %}Sales History{% endblock %}
+{% block content %}
+<div class="panel mt-3"><table class="table"><thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Total</th><th></th></tr></thead>
+<tbody>{% for s in sales %}<tr><td>#{{ s.id }}</td><td>{{ s.customer }}</td><td>{{ s.sale_date }}</td><td>₹{{ "%.2f"|format(s.total) }}</td><td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('invoice', sale_id=s.id) }}">View</a></td></tr>{% else %}<tr><td colspan="5">No sales yet.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

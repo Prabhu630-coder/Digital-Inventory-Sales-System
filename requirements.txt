@@ -1,0 +1,6 @@
+Flask
+Werkzeug
+APScheduler
+psycopg[binary]
+requests
+gunicorn
