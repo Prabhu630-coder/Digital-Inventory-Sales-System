@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
+from io import BytesIO
 import sqlite3
 import json
 import requests
@@ -400,11 +401,56 @@ def delete_customer(customer_id):
 @app.route("/database/backup")
 @login_required
 def database_backup():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    if not os.path.exists(DB_PATH):
-        init_db()
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return send_file(DB_PATH, as_attachment=True, download_name=f"inventory_backup_{stamp}.db", mimetype="application/octet-stream")
+
+    # Local SQLite version
+    if not USE_POSTGRES:
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+
+        if not os.path.exists(DB_PATH):
+            init_db()
+
+        return send_file(
+            DB_PATH,
+            as_attachment=True,
+            download_name=f"inventory_backup_{stamp}.db",
+            mimetype="application/octet-stream"
+        )
+
+    # Online Render + Neon PostgreSQL version
+    conn = get_db()
+
+    backup = {}
+
+    for table in [
+        "settings",
+        "users",
+        "products",
+        "customers",
+        "sales",
+        "sale_items"
+    ]:
+        rows = conn.execute(f"SELECT * FROM {table}").fetchall()
+        backup[table] = [dict(row) for row in rows]
+
+    conn.close()
+
+    payload = json.dumps(
+        {
+            "backup_type": "Digital Inventory Sales System PostgreSQL backup",
+            "created_at": datetime.now().isoformat(),
+            "tables": backup
+        },
+        indent=2,
+        default=str
+    ).encode("utf-8")
+
+    return send_file(
+        BytesIO(payload),
+        as_attachment=True,
+        download_name=f"inventory_backup_{stamp}.json",
+        mimetype="application/json"
+    )
 
 @app.route("/settings", methods=["GET", "POST"])
 @login_required
@@ -662,7 +708,13 @@ def reports():
         FROM sale_items si JOIN products p ON p.id=si.product_id
         GROUP BY p.id ORDER BY qty DESC LIMIT 5
     """).fetchall()
-    daily = conn.execute(("""SELECT sale_date::date day, SUM(total) revenue FROM sales GROUP BY sale_date::date ORDER BY day DESC LIMIT 7""" if USE_POSTGRES else """SELECT date(sale_date) day, SUM(total) revenue FROM sales GROUP BY date(sale_date) ORDER BY day DESC LIMIT 7""")).fetchall()
+    daily = conn.execute("""
+    SELECT LEFT(sale_date, 10) AS day, SUM(total) AS revenue
+    FROM sales
+    GROUP BY LEFT(sale_date, 10)
+    ORDER BY day DESC
+    LIMIT 7
+""").fetchall()
     conn.close()
     return render_template(
         "reports.html",
